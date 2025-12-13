@@ -1,107 +1,107 @@
-const resultsDiv = document.getElementById("results");
-const startButton = document.getElementById("start-game");
-const nextButton = document.getElementById("next-round");
-const restartButton = document.getElementById("restart-game");
+// ===== Buttons =====
+const rockButton = document.querySelector("#rock");
+const paperButton = document.querySelector("#paper");
+const scissorsButton = document.querySelector("#scissors");
+const restartButton = document.querySelector("#restart-game");
 
+// ===== Results container =====
+const resultsDiv = document.getElementById("results");
+
+// ===== Game state =====
 let hScore = 0;
 let cScore = 0;
 let currentRound = 1;
 const maxRounds = 5;
 
-function printToPage(message) {
-  const p = document.createElement("p");
-  p.textContent = message;
-  resultsDiv.appendChild(p);
+// ===== Helpers =====
+function getComputerChoice() {
+  const choices = ["rock", "paper", "scissors"];
+  return choices[Math.floor(Math.random() * 3)];
 }
 
-function getComputerChoice(pcValue) {
-  if (pcValue === 1) return "rock";
-  if (pcValue === 2) return "paper";
-  return "scissors";
+function disableChoices() {
+  rockButton.disabled = true;
+  paperButton.disabled = true;
+  scissorsButton.disabled = true;
 }
 
-function playRound(hChoice, cChoice) {
+function enableChoices() {
+  rockButton.disabled = false;
+  paperButton.disabled = false;
+  scissorsButton.disabled = false;
+}
+
+// ===== Create round block =====
+function createRoundContainer() {
+  const roundDiv = document.createElement("div");
+  roundDiv.classList.add("round");
+  resultsDiv.appendChild(roundDiv);
+  return roundDiv;
+}
+
+// ===== Game logic =====
+function playRound(hChoice) {
+  if (currentRound > maxRounds) return;
+
+  const cChoice = getComputerChoice();
+  const roundDiv = createRoundContainer();
+
+  roundDiv.innerHTML += `<strong>Round ${currentRound}</strong><br>`;
+  roundDiv.innerHTML += `You chose: ${hChoice}<br>`;
+  roundDiv.innerHTML += `Computer chose: ${cChoice}<br>`;
+
   if (hChoice === cChoice) {
-    printToPage("Result: It's a tie!");
-    return;
-  }
-  if (
+    roundDiv.innerHTML += "Result: It's a tie!";
+    roundDiv.classList.add("tie");
+  } else if (
     (hChoice === "rock" && cChoice === "scissors") ||
     (hChoice === "paper" && cChoice === "rock") ||
     (hChoice === "scissors" && cChoice === "paper")
   ) {
-    printToPage("Result: You won this round!");
+    roundDiv.innerHTML += "Result: You won this round!";
+    roundDiv.classList.add("win");
     hScore++;
   } else {
-    printToPage("Result: You lost this round!");
+    roundDiv.innerHTML += "Result: You lost this round!";
+    roundDiv.classList.add("lose");
     cScore++;
   }
-}
-
-function finalScore() {
-  if (hScore > cScore) return "You won the game!";
-  if (hScore < cScore) return "You lost the game!";
-  return "The game ended in a tie!";
-}
-
-function handleRound() {
-  if (currentRound > maxRounds) return;
-
-  let humanChoice = prompt("What's your choice: Rock, Paper or Scissors?");
-  if (!humanChoice) {
-    printToPage("Round cancelled (no input).");
-    return;
-  }
-
-  let hChoice = humanChoice.toLowerCase();
-  if (!["rock", "paper", "scissors"].includes(hChoice)) {
-    printToPage(`Invalid choice: "${humanChoice}". Please type rock, paper, or scissors.`);
-    return;
-  }
-
-  const pcValue = Math.floor(Math.random() * 3) + 1;
-  const cChoice = getComputerChoice(pcValue);
-
-  printToPage(`----- Round ${currentRound} -----`);
-  printToPage(`You chose: ${hChoice}`);
-  printToPage(`Computer chose: ${cChoice}`);
-
-  playRound(hChoice, cChoice);
 
   if (currentRound === maxRounds) {
-    printToPage("----- Game Over -----");
-    printToPage(`Final score - You: ${hScore} | Computer: ${cScore}`);
-    printToPage(finalScore());
+    const finalDiv = document.createElement("div");
+    finalDiv.classList.add("round");
+    finalDiv.innerHTML = `
+      <strong>Game Over</strong><br>
+      Final score:<br>
+      You: ${hScore}<br>
+      Computer: ${cScore}<br><br>
+      ${hScore > cScore ? "You won the game!" :
+        hScore < cScore ? "You lost the game!" :
+        "The game ended in a tie!"}
+    `;
+    resultsDiv.appendChild(finalDiv);
 
-    nextButton.style.display = "none"; // hide next-round button
-    restartButton.style.display = "inline-block"; // SHOW restart button
+    disableChoices();
+    restartButton.style.display = "inline-block";
   }
 
   currentRound++;
 }
 
-// Start button
-startButton.addEventListener("click", () => {
-  handleRound();
-  startButton.style.display = "none";
-  nextButton.style.display = "inline-block";
-});
+// ===== Button events =====
+rockButton.addEventListener("click", () => playRound("rock"));
+paperButton.addEventListener("click", () => playRound("paper"));
+scissorsButton.addEventListener("click", () => playRound("scissors"));
 
-// Next round button
-nextButton.addEventListener("click", handleRound);
-
-// ⭐ NEW: Restart button
 restartButton.addEventListener("click", () => {
-  // reset game state
   hScore = 0;
   cScore = 0;
   currentRound = 1;
-
-  // clear previous results
   resultsDiv.innerHTML = "";
-
-  // reset buttons
   restartButton.style.display = "none";
-  nextButton.style.display = "none";
-  startButton.style.display = "inline-block";
+  enableChoices();
 });
+
+// ===== Initial state =====
+restartButton.style.display = "none";
+enableChoices();
